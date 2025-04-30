@@ -11,6 +11,8 @@ public static class DependencyInjection
 {
     public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration config)
     {
+
+        // TODO: Add real database SQL SERVER
        // services.AddDbContext<AdessoDbContext>(options =>
        //     options.UseSqlServer(config.GetConnectionString("DefaultConnection")));
 

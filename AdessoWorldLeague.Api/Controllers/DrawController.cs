@@ -27,9 +27,10 @@ public class DrawController : ControllerBase
         return Ok(result);
     }
 
-    [HttpGet("test")]
-    public IActionResult Test()
+    [HttpGet("getalldraws")]
+    public async Task<IActionResult> GetAllDraws()
     {
-        return Ok("API is working!");
+        var draws = await _drawService.GetAllDrawsAsync();
+        return Ok(draws);
     }
 } 

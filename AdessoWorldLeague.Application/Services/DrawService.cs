@@ -4,6 +4,8 @@ using AdessoWorldLeague.Domain.Entities;
 
 namespace AdessoWorldLeague.Application.Services;
 
+
+
 public class DrawService : IDrawService
 {
     private readonly ITeamRepository _teamRepository;
@@ -26,28 +28,39 @@ public class DrawService : IDrawService
         if (teams.Count != 32)
             throw new InvalidOperationException("There must be exactly 32 teams.");
 
-        var groups = Enumerable.Range(0, groupCount)
-                               .Select(i => new Group { GroupName = groupNames[i] })
-                               .ToList();
+        // Create groups by groupCount
+        List<Group> groups = new();
+            for (int i = 0; i < groupCount; i++)
+                groups.Add(new Group { GroupName = $"Grup {groupNames[i]}" });
 
+    
         var rnd = new Random();
-        var teamPool = new List<Team>(teams.OrderBy(_ => rnd.Next()));
+        var selectedTeams = new HashSet<Guid>(); 
+        var countries = teams.Select(t => t.Country).Distinct().ToList();
 
-        int roundCount = 32 / groupCount;
+        int teamsPerGroup = groupCount == 4 ? 8 : 4;
 
-        for (int round = 0; round < roundCount; round++)
+        foreach (var group in groups)
         {
-            foreach (var group in groups)
+            foreach (var country in countries)
             {
-                var team = teamPool.FirstOrDefault(t => group.Teams.All(gt => gt.Country.Id != t.Country.Id));
-                if (team == null)
-                    throw new InvalidOperationException("Cannot find a valid team for group.");
-
+                
+                var availableTeams = teams
+                    .Where(t => t.Country.Id == country.Id && !selectedTeams.Contains(t.Id))
+                    .ToList();
+ 
+                if (availableTeams.Count == 0)
+                    continue;
+ 
+                var team = availableTeams[rnd.Next(availableTeams.Count)];
                 group.Teams.Add(team);
-                teamPool.Remove(team);
+                selectedTeams.Add(team.Id);
+ 
+                if (group.Teams.Count == teamsPerGroup)
+                    break;
             }
         }
-
+ 
         var draw = new Draw
         {
             DrawnBy = drawnBy,
@@ -73,5 +86,30 @@ public class DrawService : IDrawService
                 }).ToList()
             }).ToList()
         };
+    }
+
+    public async Task<List<DrawResultDto>> GetAllDrawsAsync()
+    {
+        // Eager load Groups and Teams (and Countries)
+        var draws = await _drawRepository.GetAllAsync(); // You may need to add a custom method for eager loading
+
+        return draws.Select(d => new DrawResultDto
+        {
+            DrawnBy = d.DrawnBy,
+            Date = d.Date,
+            Groups = d.Groups.Select(g => new GroupDto
+            {
+                GroupName = g.GroupName,
+                Teams = g.Teams.Select(t => new TeamDto
+                {
+                    Id = t.Id,
+                    Name = t.Name,
+                    Country = t.Country.Name
+                }).ToList()
+            }).ToList()
+        }).ToList();
+        
+ 
+       
     }
 } 

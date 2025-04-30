@@ -16,7 +16,7 @@ public class AdessoDbContext : DbContext
     {
         base.OnModelCreating(modelBuilder);
 
-        // COUNTRY
+       
         modelBuilder.Entity<Country>(entity =>
         {
             entity.ToTable("Countries");
@@ -24,7 +24,7 @@ public class AdessoDbContext : DbContext
             entity.Property(c => c.Name).IsRequired().HasMaxLength(50);
         });
 
-        // TEAM
+      
         modelBuilder.Entity<Team>(entity =>
         {
             entity.ToTable("Teams");
@@ -35,7 +35,7 @@ public class AdessoDbContext : DbContext
                   .HasForeignKey(t => t.CountryId);
         });
 
-        // DRAW
+        
         modelBuilder.Entity<Draw>(entity =>
         {
             entity.ToTable("Draws");
@@ -44,7 +44,7 @@ public class AdessoDbContext : DbContext
             entity.Property(d => d.Date).IsRequired();
         });
 
-        // GROUP
+    
         modelBuilder.Entity<Group>(entity =>
         {
             entity.ToTable("Groups");
@@ -55,7 +55,7 @@ public class AdessoDbContext : DbContext
                   .WithMany(d => d.Groups)
                   .HasForeignKey(g => g.DrawId);
 
-            // Group -> Team ilişkisinde Team'leri burada ayrı bir tablo ile ilişkilendiriyoruz (Many-to-Many istenirse ekstra tablo kurulur)
+           
             entity.HasMany(g => g.Teams);
         });
     }
